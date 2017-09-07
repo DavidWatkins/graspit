@@ -52,6 +52,7 @@
 #include "graspit/contactSetting.h"
 #include "graspit/display/graspitDisplay/ivmgr.h"
 #include "graspit/display/graspitDisplay/graspitDisplay.h"
+#include "graspit/display/displayInterface.h"
 #include "graspit/grasp.h"
 #include "graspit/robots/barrett.h"
 #include "graspit/matvec3D.h"
@@ -456,6 +457,8 @@ World::destroyElement(WorldElement *e, bool deleteElement)
   if (e->inherits("Body")) {
     DBGP("found a body");
     mCollisionInterface->removeBody((Body *) e);
+    mDisplayInterface->removeBody((Body *) e);
+
     for (bp = bodyVec.begin(); bp != bodyVec.end(); bp++) {
       if (*bp == e) {
         bodyVec.erase(bp); numBodies--;
@@ -933,6 +936,8 @@ World::importBody(QString bodyType, QString filename)
   Body *newBody = (Body *) getWorldElementFactory().createElement(bodyType.toStdString(), this, NULL);
   if (!newBody) { return NULL; }
   if (newBody->load(filename) == FAILURE) { return NULL; }
+
+  mDisplayInterface->addBody(newBody);
   newBody->addToIvc();
   addBody(newBody);
   return newBody;

@@ -41,16 +41,6 @@
 #include "graspit/DBase/graspit_db_model.h"
 #endif
 
-class SoCoordinate3;
-class SoGroup;
-class SoIndexedFaceSet;
-class SoMaterial;
-class SoScale;
-class SoSeparator;
-class SoSwitch;
-class SoTranslation;
-class SoTransform;
-
 class Contact;
 class BodySensor;
 class SensorReading;
@@ -92,6 +82,12 @@ class Body : public WorldElement {
     //! The Young's Modulus of the material, it describes its elasticity
     double youngMod;
 
+    //! Transparency between 0 and 1
+    float transparency;
+
+    //! Scale in X, Y, and Z
+    vec3 scale;
+
     //! The file that geometry was loaded from, if any
     QString mGeometryFilename;
 
@@ -100,6 +96,10 @@ class Body : public WorldElement {
 
     //! The body's world position (translations are in mm)
     transf Tran;
+
+    //! Current Body's triangles and vertices
+    std::vector<Triangle> triangles;
+    std::vector<position> vertices;
 
     //! When this is un-checked, changing the transform of this body will not trigger a redraw
     bool mRenderGeometry;
@@ -122,32 +122,6 @@ class Body : public WorldElement {
     //! This flag determines whether the body's virtual contacts should be shown
     bool showVC;
 
-    //! A pointer to the root node of the geometry of this model
-    SoSeparator *IVGeomRoot;
-
-    //! A pointer to a node that scales the geometry of this model
-    SoTransform *IVScaleTran;
-
-    //! A pointer to a node that offsets the geometry of this model
-    SoTransform *IVOffsetTran;
-
-    //! A pointer to a node that can hold the geometry of the bounding volume struture
-    SoSeparator *IVBVRoot;
-
-#ifdef GEOMETRY_LIB
-    //! If we are using the geometry library, here we will show the primitives that approximate this body
-    SoSeparator *IVPrimitiveRoot;
-#endif
-
-    //! A pointer to the Inventor transform for the body
-    SoTransform *IVTran;
-
-    //! A pointer to the material node that controls this body's transparency
-    SoMaterial *IVMat;
-
-    //! A pointer to the root of the friction cones on this body
-    SoSeparator *IVContactIndicators;
-
     //! This flag tells us if this body follows the Flock of Birds tracker
     bool mUsesFlock;
 
@@ -157,26 +131,11 @@ class Body : public WorldElement {
     //! The relative tranform used for the Flock of Birds
     FlockTransf mFlockTran;
 
-    //! Inventor root of the axes in the body subtree
-    SoSwitch *IVAxes;
-
-    //! Inventor root of the worst case disturbance wrench indicator
-    SoSeparator *IVWorstCase;
-
-    //! Inventor transform from body frame to center of gravity
-    SoTranslation *axesTranToCOG;
-
-    //! Inventor scale for axes so that they extend outside the body
-    SoScale *axesScale;
-
     //! Copy constructor
     Body(const Body &b);
 
     //! Creates the axes for display
     void createAxesGeometry();
-
-    //! Initialize an empty scene graph structure with just the needed roots
-    void initializeIV();
 
     //! Adds itself to the given vector of Bodies
     virtual void getBodyList(std::vector<Body *> *bodies) {bodies->push_back(this);}
@@ -221,6 +180,9 @@ class Body : public WorldElement {
 
     //! Adds this body to the collision detection system
     virtual void addToIvc(bool ExpectEmpty = false);
+
+    //! Adds this body to the display interface engine
+    virtual void addToDisplayInterface();
 
     //! Adds this body to the collision detection system as a clone of another body
     virtual void cloneToIvc(const Body *original);
@@ -268,30 +230,8 @@ class Body : public WorldElement {
     //! Sets the material of this body
     void setMaterial(int mat);
 
-    /*! Returns the Inventor material for the body. */
-    SoMaterial *getIVMat() const {return IVMat;}
-
     //! Returns the Young's modulus for this body
     double getYoungs() { return youngMod; }
-
-    /*! Returns a pointer to the root of the Inventor geometry that was loaded.*/
-    SoSeparator *getIVGeomRoot() const {return IVGeomRoot;}
-
-    /*! Returns a pointer ot the scaling transform of this body */
-    SoTransform *getIVScaleTran() {return IVScaleTran;}
-
-#ifdef GEOMETRY_LIB
-    //! The root of the scene graph where we can put primitive geometry
-    SoSeparator *getIVPrimitiveRoot() const {return IVPrimitiveRoot;}
-#endif
-
-    /*! Returns a pointer to the Inventor transform node for the body. */
-    SoTransform *getIVTran() const {return IVTran;}
-
-    /*! Returns a pointer to the root of the Inventor subtree containing the
-      friction cones.
-    */
-    SoSeparator *getIVContactIndicators() const {return IVContactIndicators;}
 
     /*! Asks the body to display a number of bounding boxes as part of its
       collision detection bbox hierarchy. Used only for debugging purposes.
@@ -355,10 +295,10 @@ class Body : public WorldElement {
     friend QTextStream &operator<<(QTextStream &os, const Body &b);
 
     /*! Returns all the triangles of the scene graph geometry of this object */
-    void getGeometryTriangles(std::vector<Triangle> *triangles) const;
+    std::vector<Triangle> getGeometryTriangles() const;
 
     /*! Returns all the vertices of the scene graph geometry of this object*/
-    void getGeometryVertices(std::vector<position> *vertices) const;
+    std::vector<position> getGeometryVertices() const;
 };
 
 //! The superclass for all bodies that take part in the dynamics.
@@ -513,10 +453,6 @@ class DynamicBody : public Body {
        4x1 quaternion]
      */
     const double *getPos() {return q;}
-
-    /*! The returns a pointer to the Inventor subgraph containing the worst case
-      indicator */
-    SoSeparator *getIVWorstCase() const {return IVWorstCase;}
 
     /*! Returns whether the body is fixed within the world */
     bool isFixed() const {return fixed;}
@@ -701,9 +637,6 @@ class GraspitDBModel;
 class GraspableBody : public DynamicBody {
     Q_OBJECT
 
-    //! A pointer to the Inventor root of the shape primitives for this body
-    SoSeparator *IVGeomPrimitives;
-
     //! When using the CGDB, here we store the CGDB model that this body comes from, if any
 #ifdef CGDB_ENABLED
     GraspitDBModel *mGraspitDBModel;
@@ -716,11 +649,6 @@ class GraspableBody : public DynamicBody {
     virtual void setDefaultViewingParameters();
 
     virtual void cloneFrom(const GraspableBody *newBody);
-
-    /*! If the body has shape primitives defined (i.e. they were found when the
-      body was loaded), this returns a pointer to the Inventor root node of
-      that tree.  Otherwise, it returns NULL. */
-    SoSeparator *getIVGeomPrimitives() const {return IVGeomPrimitives;}
 
     friend QTextStream &operator<<(QTextStream &os, const GraspableBody &gb);
 

@@ -3,6 +3,14 @@
 DisplayBody::DisplayBody(Body *b):
     mBody(b)
 {
+    IVGeomRoot = NULL; IVTran = NULL; IVMat = NULL; IVContactIndicators = NULL;
+    IVScaleTran = NULL;
+    IVOffsetTran = NULL;
+    IVBVRoot = NULL;
+#ifdef GEOMETRY_LIB
+    IVPrimitiveRoot = NULL;
+#endif
+
     IVRoot = new SoSeparator;
     IVTran = new SoTransform;
     IVRoot->insertChild(IVTran, 0);
@@ -15,5 +23,7 @@ DisplayBody::DisplayBody(Body *b):
 
     IVGeomRoot = new SoSeparator;
     IVRoot->addChild(IVGeomRoot);
+
+//    initializeIV();
 }
 

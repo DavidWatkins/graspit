@@ -1,4 +1,5 @@
 #include <iostream>
+#include <include/graspit/debug.h>
 
 #include "graspit/display/graspitDisplay/graspitDisplay.h"
 #include "graspit/display/graspitDisplay/displayBody.h"
@@ -10,7 +11,7 @@
 #include "graspit/transform.h"
 
 
-GraspitDisplay::GraspitDisplay(World *world):mWorld(world)
+GraspitDisplay::GraspitDisplay(World *world):DisplayInterface(world),mWorld(world)
 {
 
 }
@@ -29,7 +30,7 @@ void GraspitDisplay::addBody(Body *body)
 
 void GraspitDisplay::removeBody(Body *body)
 {
-    DisplayBody *db  = getModel(body);
+    DisplayBody *db  = mBodyMap[body];
 
     // If the body was not registered with the display interface,
     // there is nothing left to do.
@@ -39,7 +40,7 @@ void GraspitDisplay::removeBody(Body *body)
     }
 
     // remove the entry from the body map
-    mBodyMap.erase(mBodyMap.find(db));
+    mBodyMap.erase(body);
 
     // delete the associated display body.
     delete db;
@@ -98,5 +99,5 @@ void GraspitDisplay::setCameraTransf(transf tr){
 transf GraspitDisplay::getCameraTransf()
 {
     std::cout << "GraspitDisplay::getCameraTransf not Implemented Yet!" << std::endl;
-    return transf::IDENTITY();
+    return transf::IDENTITY;
 }

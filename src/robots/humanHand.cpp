@@ -130,7 +130,8 @@ void TendonInsertionPoint::createInsertionGeometry()
     like this, we don't have to worry about updating anything.
     One problem: cleanup. This reference might prevent link's tranform IV node from
     being deleted when it should be. */
-  mIVInsertion->addChild(getAttachedLink()->getIVTran());
+  //TODO: Pull out IVTran into a displayHumanHand
+//  mIVInsertion->addChild(getAttachedLink()->getIVTran());
 
   /* insertion point's location relative to link's origin*/
   mIVInsertionTran->translation.setValue(mAttachPoint.x() , mAttachPoint.y() , mAttachPoint.z());
@@ -1014,7 +1015,8 @@ void TendonWrapper::createGeometry()
   /*insert a pointer to the transform of the link this wrapper is attached to
     like this, we don't have to worry about updating anything.
     One problem: cleanup. This reference might prevent link's tranform IV node from being deleted when it should be*/
-  IVWrapper->addChild(getAttachedLink()->getIVTran());
+  //TODO: Pull this into displayHumanHand
+//  IVWrapper->addChild(getAttachedLink()->getIVTran());
 
   /* insertion point's location relative to link's origin and align axis with wrapper orientation*/
   IVWrapper->addChild(IVWrapperTran);

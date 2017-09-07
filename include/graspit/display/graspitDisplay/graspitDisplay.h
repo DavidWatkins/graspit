@@ -46,11 +46,16 @@ class GraspitDisplay : public DisplayInterface {
     //! Add a robot to be displayed
     void addRobot(Robot *robot);
 
+    void removeBody(Body *body);
+
+    void removeJoint(Joint *joint);
+
+    void removeRobot(Robot *robot);
+    void removeVirtualContact(VirtualContact *vc);
+    void removeContact(Contact *c);
+
     //! Add a virtual contact to be displayed
     void addVirtualContact(VirtualContact *vc);
-
-    //! Add a contact to be displayed
-    void addContact(Contact *c);
 
     //! Add a contact to be displayed
     void addContact(Contact *c);

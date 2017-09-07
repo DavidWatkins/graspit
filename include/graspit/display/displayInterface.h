@@ -44,7 +44,7 @@ class DisplayInterface {
 
     //! Initialized with a pointer to the world that will
     //! be displayed
-    DisplayInterface(World *w)=0;
+    DisplayInterface(World *w){};
 
     virtual ~DisplayInterface() =0;
 

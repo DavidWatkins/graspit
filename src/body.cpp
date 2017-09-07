@@ -43,6 +43,7 @@
 #include "graspit/bBox.h"
 #include "graspit/triangle.h"
 #include "graspit/world.h"
+#include "graspit/display/displayInterface.h"
 #include "graspit/robot.h"
 #include "graspit/joint.h"
 #include "graspit/dynamics/dynJoint.h"
@@ -117,19 +118,12 @@ Body::Body(World *w, const char *name) : WorldElement(w, name)
   numContacts = 0;
   showFC = false;
   showVC = false;
-  IVGeomRoot = NULL; IVTran = NULL; IVMat = NULL; IVContactIndicators = NULL;
-  IVScaleTran = NULL;
-  IVOffsetTran = NULL;
-  IVBVRoot = NULL;
-#ifdef GEOMETRY_LIB
-  IVPrimitiveRoot = NULL;
-#endif
+
   mUsesFlock = false;
   mBirdNumber = 0;
   mRenderGeometry = true;
   mGeometryFilename = "none";
 
-  initializeIV();
 }
 
 /*!
@@ -146,14 +140,6 @@ Body::Body(const Body &b) : WorldElement(b)
   Tran = b.Tran;
 
   IVRoot = b.IVRoot;
-  IVTran = b.IVTran;
-  IVContactIndicators = b.IVContactIndicators;
-#ifdef GEOMETRY_LIB
-  IVPrimitiveRoot = b.IVPrimitiveRoot;
-#endif
-  IVBVRoot = b.IVBVRoot;
-  IVGeomRoot = b.IVGeomRoot;
-  IVMat = b.IVMat;
   mGeometryFilename = b.mGeometryFilename;
 
   createAxesGeometry();
@@ -196,12 +182,6 @@ Body::cloneFrom(const Body *original)
   }
 
   setRenderGeometry(original->getRenderGeometry());
-
-  int numGeomChildren = original->getIVGeomRoot()->getNumChildren();
-  //create a CLONE of all geometry
-  for (int i = 0; i < numGeomChildren; i++) {
-    IVGeomRoot->addChild(original->getIVGeomRoot()->getChild(i));
-  }
 
   addIVMat(true);
 
@@ -290,8 +270,6 @@ Body::loadFromXml(const TiXmlElement *root, QString rootPath)
   }
 
   //scaling of the geometry
-  IVScaleTran = new SoTransform;
-  IVScaleTran->scaleFactor.setValue(1.0, 1.0, 1.0);
   element = findXmlElement(root, "geometryScaling");
   if (element) {
     valueStr = element->GetText();
@@ -300,15 +278,15 @@ Body::loadFromXml(const TiXmlElement *root, QString rootPath)
       DBGA("Scale geometry: negative scale found");
       return FAILURE;
     }
-    IVScaleTran->scaleFactor.setValue(scale, scale, scale);
+    this->scale = vec3(scale, scale, scale);
+  } else {
+    this->scale = vec3(1.0, 1.0, 1.0);
   }
-  IVGeomRoot->insertChild(IVScaleTran, 0);
 
   //any offset to the geometry, inserted inside the geometry itself
   //note that the offset gets added before the scale, so the offset is
   //always expressed in graspit's units
-  IVOffsetTran = new SoTransform;
-  transf::IDENTITY.toSoTransform(IVOffsetTran);
+  Tran = transf::IDENTITY;
   element = findXmlElement(root, "geometryOffset");
   if (element) {
     const TiXmlElement *transformElement = findXmlElement(element, "transform");
@@ -316,14 +294,11 @@ Body::loadFromXml(const TiXmlElement *root, QString rootPath)
       DBGA("Geometry offset field missing transform information");
       return FAILURE;
     }
-    transf offsetTran;
-    if (!getTransform(transformElement, offsetTran)) {
+    if (!getTransform(transformElement, Tran)) {
       DBGA("Geometry offset field: failed to parse transform");
       return FAILURE;
     }
-    offsetTran.toSoTransform(IVOffsetTran);
   }
-  IVGeomRoot->insertChild(IVOffsetTran, 0);
 
   return SUCCESS;
 }
@@ -413,26 +388,6 @@ Body::load(const QString &filename)
 int
 Body::loadGeometryIV(const QString &filename)
 {
-  SoInput myInput;
-  if (!myInput.openFile(filename.latin1())) {
-    QTWARNING("Could not open Inventor file " + filename);
-    return FAILURE;
-  }
-
-  //we will read the geometry from the file
-  SoGroup *fileGeomRoot;
-  if (myInput.isFileVRML2()) {
-    fileGeomRoot = SoDB::readAllVRML(&myInput);
-  } else {
-    fileGeomRoot = SoDB::readAll(&myInput);
-  }
-  myInput.closeFile();
-  if (fileGeomRoot == NULL) {
-    QTWARNING("A problem occurred while reading Inventor file" + filename);
-    return FAILURE;
-  }
-  //and add it to scene graph
-  IVGeomRoot->addChild(fileGeomRoot);
   return SUCCESS;
 }
 
@@ -478,6 +433,8 @@ int OFFReadFailure() {
 */
 int
 Body::loadGeometryOFF(const QString &filename) {
+  std::cerr << "TODO: Fix this reader because it will crash if improperly formatted file is read" << std::endl;
+
   ifstream file(filename.toStdString().c_str());
   istringstream line;
 
@@ -491,38 +448,35 @@ Body::loadGeometryOFF(const QString &filename) {
   line >> num_vertices >> num_faces;
   if (line.fail()) { return OFFReadFailure(); }
 
-  SbVec3f *vertices = new SbVec3f[num_vertices];
-  std::vector<int32_t> face_indices;
   // Read vertices
   for (long vertex = 0; vertex < num_vertices; ++vertex) {
     if (!GetOffLine(&file, &line)) { return OFFReadFailure(); }
     float x, y, z;
     line >> x >> y >> z;
     if (line.fail()) { return OFFReadFailure(); }
-    vertices[vertex].setValue(x, y, z);
+    vertices.push_back(position(x, y, z));
   }
   // Read faces into a vector
   for (long face = 0; face < num_faces; ++face) {
     if (!GetOffLine(&file, &line)) { return OFFReadFailure(); }
     int num_points, vertex_index;
     line >> num_points;
+
+    if(num_points > 3) {
+      std::cerr << "TODO: write OFF reader that support more than 3 points per face" << std::endl;
+      continue;
+    }
+
     // Read the points
+    std::vector<int> face_indices;
     for (int point = 0; point < num_points; ++point) {
       line >> vertex_index;
       face_indices.push_back(vertex_index);
       // Triangulate the face as we go with a triangle fan and save the
     }
     if (line.fail()) { return OFFReadFailure(); }
-    face_indices.push_back(SO_END_FACE_INDEX);
+    triangles.push_back(Triangle(vertices[face_indices[0]], vertices[face_indices[1]], vertices[face_indices[3]]));
   }
-
-  // Put everything into Coin geometry
-  SoCoordinate3 *coords = new SoCoordinate3;
-  coords->point.setValues(0, num_vertices, vertices);
-  SoIndexedFaceSet *ifs = new SoIndexedFaceSet;
-  ifs->coordIndex.setValues(0, face_indices.size(), &(face_indices[0]));
-  this->IVGeomRoot->addChild(coords);
-  this->IVGeomRoot->addChild(ifs);
 
   DBGA("OFF reader success");
   return SUCCESS;
@@ -555,77 +509,20 @@ Body::loadGeometryPLY(const QString &filename)
 }
 
 int
-Body::loadGeometryMemory(const std::vector<position> &vertices, const std::vector<int> &triangles)
+Body::loadGeometryMemory(const std::vector<position> &vertices_from_file, const std::vector<int> &triangles_from_file)
 {
-  int num_vertices = vertices.size();
-  SbVec3f *sbVertices = new SbVec3f[num_vertices];
-  for (size_t i = 0; i < vertices.size(); i++) {
-    sbVertices[i].setValue(vertices[i].x(), vertices[i].y(), vertices[i].z());
+  for(int i = 0; i < vertices_from_file.size(); ++i) {
+    const position& vertex = vertices_from_file[i];
+    vertices.push_back(vertex);
   }
-  SoCoordinate3 *coords = new SoCoordinate3;
-  coords->point.setValues(0, num_vertices, sbVertices);
-  std::vector<int32_t> face_indices;
-  for (size_t i = 0; i < triangles.size(); i++) {
-    face_indices.push_back(triangles[i]);
-    if (i % 3 == 2) {
-      face_indices.push_back(SO_END_FACE_INDEX);
-    }
+
+  for(int i = 0; i < triangles_from_file.size() % 3; ++i) {
+    triangles.push_back(Triangle(vertices[triangles_from_file[i]],
+                                 vertices[triangles_from_file[i+1]],
+                                 vertices[triangles_from_file[i+2]]));
   }
-  SoIndexedFaceSet *ifs = new SoIndexedFaceSet;
-  ifs->coordIndex.setValues(0, face_indices.size(), &(face_indices[0]));
-  this->IVGeomRoot->addChild(coords);
-  this->IVGeomRoot->addChild(ifs);
+
   return SUCCESS;
-}
-
-/*! After the geometry has been set, this function adds a new Material
-  node after any Material node already present so we can change the
-  transparency of this object. Does not work on bodies loaded from
-  VRML files, as they have different types of material nodes. I have
-  tried also searching for SoVRMLMaterial nodes, but the search fails
-  even if those nodes exist; I suppose that is a bug in Coin.
-*/
-void
-Body::addIVMat(bool clone)
-{
-  IVMat = new SoMaterial;
-  IVMat->diffuseColor.setIgnored(true);
-  IVMat->ambientColor.setIgnored(true);
-  IVMat->specularColor.setIgnored(true);
-  IVMat->emissiveColor.setIgnored(true);
-  IVMat->shininess.setIgnored(true);
-
-  if (clone) {
-    //clone's IVMat really does nothing except die with the clone
-    IVGeomRoot->addChild(IVMat);
-  } else {
-    SoSearchAction *sa = new SoSearchAction;
-    sa->setInterest(SoSearchAction::ALL);
-    sa->setType(SoMaterial::getClassTypeId());
-    sa->apply(IVGeomRoot);
-
-    if (sa->getPaths().getLength() == 0) {
-      IVGeomRoot->insertChild(IVMat, 0);
-    } else {
-      for (int i = 0; i < sa->getPaths().getLength(); i++) {
-        SoGroup *g = (SoGroup *)sa->getPaths()[i]->getNodeFromTail(1);
-        if (((SoMaterial *)sa->getPaths()[i]->getTail())->transparency[0] == 0.0f) {
-          g->insertChild(IVMat, sa->getPaths()[i]->getIndexFromTail(0) + 1);
-        }
-      }
-    }
-    delete sa;
-  }
-  /*
-  FILE *fp = fopen("foo.txt","w");
-  SoOutput *so  = new SoOutput;
-  so->setFilePointer(fp);
-  SoWriteAction *swa = new SoWriteAction(so);
-  swa->apply(IVGeomRoot);
-  delete swa;
-  delete so;
-  fclose(fp);
-  */
 }
 
 /*! Adds the body to the world's collision detection system
@@ -635,6 +532,14 @@ Body::addToIvc(bool ExpectEmpty)
 {
   myWorld->getCollisionInterface()->addBody(this, ExpectEmpty);
   myWorld->getCollisionInterface()->setBodyTransform(this, Tran);
+}
+
+/*! Adds the body to the world's display engine
+ */
+void
+Body::addToDisplayInterface()
+{
+  myWorld->getDisplayInterface()->addBody(this);
 }
 
 /*! Clones the original's body geometry for the world
@@ -657,7 +562,7 @@ void Body::setGeometryScaling(double x, double y, double z)
     DBGA("Scale geometry: negative or zero scale found");
     return;
   }
-  IVScaleTran->scaleFactor.setValue(x, y, z);
+  scale = vec3(x, y, z);
   myWorld->getCollisionInterface()->updateBodyGeometry(this);
 }
 
@@ -665,7 +570,7 @@ void Body::setGeometryScaling(double x, double y, double z)
 */
 void Body::setGeometryOffset(transf tr)
 {
-  tr.toSoTransform(IVOffsetTran);
+  Tran = tr;
   myWorld->getCollisionInterface()->updateBodyGeometry(this);
 }
 
@@ -677,98 +582,13 @@ Body::setDefaultViewingParameters()
   setTransparency(0.0);
 }
 
-/*! Initialized the empty scene graph structure that we will use
-  in the future to render this body
-*/
-void
-Body::initializeIV()
-{
-  IVRoot = new SoSeparator;
-  IVTran = new SoTransform;
-  IVRoot->insertChild(IVTran, 0);
-
-  //axes get added at the beginning, so they are not affected
-  //by what goes on in the other groups
-  createAxesGeometry();
-
-  IVContactIndicators = new SoSeparator;
-  IVRoot->addChild(IVContactIndicators);
-
-#ifdef GEOMETRY_LIB
-  IVPrimitiveRoot = new SoSeparator;
-  IVRoot->addChild(IVPrimitiveRoot);
-#endif
-
-  IVBVRoot = new SoSeparator;
-  IVRoot->addChild(IVBVRoot);
-
-  IVGeomRoot = new SoSeparator;
-  IVRoot->addChild(IVGeomRoot);
-}
-
 /*! Shows a bounding box hierarchy for this body. Used for
   debug purposes.
 */
 void
 Body::setBVGeometry(const std::vector<BoundingBox> &bvs)
 {
-  IVBVRoot->removeAllChildren();
-  int mark = 0;
-  for (int i = 0; i < (int)bvs.size(); i++) {
-    SoSeparator *bvSep = new SoSeparator;
-
-    SoMaterial *bvMat = new SoMaterial;
-    bvSep->addChild(bvMat);
-    float r, g, b;
-    //random colors
-    r = ((float)rand()) / RAND_MAX;
-    g = ((float)rand()) / RAND_MAX;
-    b = ((float)rand()) / RAND_MAX;
-
-    //mark collisions
-    if (bvs[i].mMark) {
-      mark++;
-      r = 0.8f; g = 0.0f; b = 0.0f;
-    } else {
-      r = g = b = 0.5f;
-    }
-
-    bvMat->diffuseColor = SbColor(r, g, b);
-    bvMat->ambientColor = SbColor(r, g, b);
-    bvMat->transparency = 0.5;
-
-    SoTransform *bvTran = new SoTransform;
-    bvs[i].getTran().toSoTransform(bvTran);
-    bvSep->addChild(bvTran);
-
-
-    //a single cube for the entire box
-    SoCube *bvBox = new SoCube;
-    bvBox->width = 2 * bvs[i].halfSize.x();
-    bvBox->height = 2 * bvs[i].halfSize.y();
-    bvBox->depth = 2 * bvs[i].halfSize.z();
-    bvSep->addChild(bvBox);
-
-
-    //2 cubes so we also see separarion plane
-    /*
-    SoCube *bvBox = new SoCube;
-    bvBox->width =    bvs[i].halfSize.x();
-    bvBox->height = 2 * bvs[i].halfSize.y();
-    bvBox->depth = 2 * bvs[i].halfSize.z();
-    SoTransform *halfCubeTran = new SoTransform;
-    halfCubeTran->translation.setValue(bvs[i].halfSize.x()/2.0, 0.0, 0.0);
-    bvSep->addChild(halfCubeTran);
-    bvSep->addChild(bvBox);
-    halfCubeTran = new SoTransform;
-    halfCubeTran->translation.setValue(-bvs[i].halfSize.x(), 0.0, 0.0);
-    bvSep->addChild(halfCubeTran);
-    bvSep->addChild(bvBox);
-    */
-
-    IVBVRoot->addChild(bvSep);
-  }
-  DBGA("Setting bv geom: " << bvs.size() << " boxes. Marked: " << mark);
+  std::cerr << "Body::setBVGeometry Not Yet Implemented" << std::endl;
 }
 
 /*!
@@ -778,7 +598,7 @@ Body::setBVGeometry(const std::vector<BoundingBox> &bvs)
 float
 Body::getTransparency() const
 {
-  return IVMat->transparency[0];
+  return transparency;
 }
 
 
@@ -790,7 +610,7 @@ Body::getTransparency() const
 void
 Body::setTransparency(float t)
 {
-  IVMat->transparency = t;
+  this->transparency = t;
 }
 
 
@@ -804,14 +624,11 @@ Body::setMaterial(int mat)
   std::list<Contact *>::iterator cp;
 
   material = mat;
-  if (showFC || showVC) { IVContactIndicators->removeAllChildren(); }
 
   for (cp = contactList.begin(); cp != contactList.end(); cp++) {
     (*cp)->updateCof();
     (*cp)->getMate()->updateCof();
-    (*cp)->getBody2()->redrawFrictionCones();
   }
-  redrawFrictionCones();
 }
 
 
@@ -824,57 +641,6 @@ Body::showFrictionCones(bool on, int vc)
   showFC = on;
   if (vc == 1) { showVC = true; }
   else if (vc == 2) { showVC = false; }
-  redrawFrictionCones();
-}
-
-
-/*!
-  Recomputes all the friction cones on the body
-*/
-void
-Body::redrawFrictionCones()
-{
-  std::list<Contact *>::iterator cp;
-
-  IVContactIndicators->removeAllChildren();
-  if (showFC) {
-    for (cp = contactList.begin(); cp != contactList.end(); cp++) {
-      IVContactIndicators->addChild((*cp)->getVisualIndicator());
-    }
-  }
-  if (showVC) {
-    for (cp = virtualContactList.begin(); cp != virtualContactList.end(); cp++) {
-      IVContactIndicators->addChild(((VirtualContact *)(*cp))->getVisualIndicator());
-    }
-  }
-}
-
-/*! Sets whether a change of this body's transform should automatically
-  trigger a redraw. This seems to not always work...
-*/
-void
-Body::setRenderGeometry(bool s)
-{
-  assert(IVTran);
-  mRenderGeometry = s;
-  if (!s) {
-    //    IVRoot->enableNotify(false);
-    //    IVTran->enableNotify(false);
-    //    IVMat->enableNotify(false);
-    //    IVGeomRoot->enableNotify(false);
-    //    IVContactIndicators->enableNotify(false);
-    IVTran->translation.enableNotify(false);
-    IVTran->rotation.enableNotify(false);
-  } else {
-    //    IVRoot->enableNotify(true);
-    //    IVTran->enableNotify(true);
-    //    IVMat->enableNotify(true);
-    //    IVGeomRoot->enableNotify(true);
-    //    IVContactIndicators->enableNotify(true);
-    IVTran->translation.enableNotify(true);
-    IVTran->rotation.enableNotify(true);
-  }
-
 }
 
 /*!
@@ -892,9 +658,7 @@ Body::setTran(transf const &tr)
   }
   Tran = tr;
   myWorld->getCollisionInterface()->setBodyTransform(this, Tran);
-  if (IVTran) {
-    Tran.toSoTransform(IVTran);
-  }
+
   return SUCCESS;
 }
 
@@ -945,10 +709,6 @@ Body::breakContacts()
   }
   prevContactList.clear();
 
-  if (showFC) {
-    IVContactIndicators->removeAllChildren();
-  }
-
   setContactsChanged();
 }
 
@@ -996,9 +756,7 @@ Body::breakVirtualContacts()
     delete *cp;
   }
   //this deletes all contact indicators, should be fixed..
-  if (showVC) {
-    IVContactIndicators->removeAllChildren();
-  }
+
   virtualContactList.clear();
 }
 
@@ -1025,9 +783,6 @@ Body::resetContactList()
     contactList.clear();
   }
   numContacts = 0;
-  if (showFC) {
-    IVContactIndicators->removeAllChildren();
-  }
 
   setContactsChanged();
 }
@@ -1042,10 +797,6 @@ Body::addContact(Contact *c)
 {
   contactList.push_back(c);
   numContacts++;
-  if (showFC) {
-    assert(IVContactIndicators->getNumChildren() > numContacts - 2);
-    IVContactIndicators->insertChild(c->getVisualIndicator(), numContacts - 1);
-  }
   setContactsChanged();
 }
 
@@ -1086,9 +837,6 @@ void
 Body::addVirtualContact(Contact *c)
 {
   virtualContactList.push_back(c);
-  if (showVC) {
-    IVContactIndicators->addChild(c->getVisualIndicator());
-  }
   setContactsChanged();
 }
 
@@ -1146,7 +894,6 @@ Body::removeContact(Contact *c)
         contactList.erase(cp);
         break;
       }
-    IVContactIndicators->removeChild(i);
   }
   else { contactList.remove(c); }
 
@@ -1235,55 +982,20 @@ void addVerticesFromTriangleCallBack(void *info, SoCallbackAction *action,
 }
 
 /*! Returns all the triangle that make up the geometry of this body */
-void
-Body::getGeometryTriangles(std::vector<Triangle> *triangles) const
+std::vector<Triangle>
+Body::getGeometryTriangles() const
 {
-  SoCallbackAction ca;
-  ca.addTriangleCallback(SoShape::getClassTypeId(), addTriangleCallBack, triangles);
-  ca.apply(getIVGeomRoot());
+  return triangles;
 }
 
 /*! Returns all the vertices that make up the geometry of this body.
   This function will return duplicates, as vertices are reported once
   for each triangle that they are part of
 */
-void
-Body::getGeometryVertices(std::vector<position> *vertices) const
+std::vector<position>
+Body::getGeometryVertices() const
 {
-  SoCallbackAction ca;
-  //unfortunately, this does not work as triangle vertices are not considered points by Coin
-  //ca.addPointCallback(SoShape::getClassTypeId(), addVertexCallBack, vertices);
-  //we have to use a triangle callback which leads to duplication
-  ca.addTriangleCallback(SoShape::getClassTypeId(), addVerticesFromTriangleCallBack, vertices);
-  ca.apply(getIVGeomRoot());
-}
-
-/*! Creates the geometry of the axes which show this body's local
-  coordinate system. The axes are usually shown centered at the c.o.m
-*/
-void Body::createAxesGeometry()
-{
-  IVWorstCase = new SoSeparator;
-  IVAxes = new SoSwitch;
-  if (graspitCore) {
-    SoSeparator *axesSep = new SoSeparator;
-    axesTranToCOG = new SoTranslation;
-    axesTranToCOG->translation.setValue(0, 0, 0);
-    axesSep->addChild(axesTranToCOG);
-    axesSep->addChild(IVWorstCase);
-
-    axesScale = new SoScale;
-    axesScale->scaleFactor = SbVec3f(1, 1, 1);
-    axesSep->addChild(axesScale);
-    if (graspitCore->getIVmgr())
-    {
-      axesSep->addChild(graspitCore->getIVmgr()->getPointers()->getChild(2));
-    }
-    IVAxes->addChild(axesSep);
-  }
-  if (!IVRoot) { IVRoot = new SoSeparator; }
-
-  IVRoot->addChild(IVAxes);
+  return vertices;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1504,9 +1216,6 @@ DynamicBody::setCoG(const position &newCoG)
   resetDynamics();
   //use this to display axes at the CoG
   //axesTranToCOG->translation.setValue(CoG.x(), CoG.y(), CoG.z());
-
-  //use this to display axes at body origin
-  axesTranToCOG->translation.setValue(0, 0, 0);
 }
 
 /*! The max radius can be thought of as the largest distance from the center
@@ -1516,7 +1225,6 @@ void
 DynamicBody::setMaxRadius(double maxRad)
 {
   maxRadius = maxRad;
-  axesScale->scaleFactor = SbVec3f(maxRadius / AXES_SCALE, maxRadius / AXES_SCALE, maxRadius / AXES_SCALE);
 }
 
 void
@@ -1528,8 +1236,6 @@ DynamicBody::setInertiaMatrix(const double *newI)
 double
 DynamicBody::computeDefaultMaxRadius()
 {
-  std::vector<position> vertices;
-  getGeometryVertices(&vertices);
   if (vertices.empty()) {
     DBGA("No vertices found when computing maxRadius!");
   }
@@ -1897,8 +1603,6 @@ computeDefaultCoG(std::vector<Triangle> &triangles, position &defaultCoG)
 void
 DynamicBody::computeDefaultMassProp(position &defaultCoG, double *defaultI)
 {
-  std::vector<Triangle> triangles;
-  getGeometryTriangles(&triangles);
   if (triangles.empty()) {
     DBGA("No triangles found when computing mass properties!");
     defaultCoG.x() = 0.0;
@@ -1930,8 +1634,6 @@ void
 DynamicBody::showAxes(bool on)
 {
   DBGP("Show axes: " << on);
-  if (on) { IVAxes->whichChild = 0; }
-  else { IVAxes->whichChild = -1; }
   showAx = on;
 }
 
@@ -2082,7 +1784,6 @@ DynamicBody::setPos(const double *new_q)
   transf tr = transf(rot, vec3(q[0], q[1], q[2]) - cogOffset);
 
   Tran = tr;
-  Tran.toSoTransform(IVTran);
   myWorld->getCollisionInterface()->setBodyTransform(this, Tran);
 
   return true;

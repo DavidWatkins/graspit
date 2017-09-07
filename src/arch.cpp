@@ -22,6 +22,7 @@
 // $Id:
 //
 //######################################################################
+//TODO: Please kill me
 
 #include "graspit/arch.h"
 
@@ -74,8 +75,8 @@ Body *createSupport(double size, double thickness, World *world)
   SoIndexedFaceSet *ifs = new SoIndexedFaceSet;
   ifs->coordIndex.setValues(0, 5 * 6, c);
 
-  body->getIVGeomRoot()->addChild(coords);
-  body->getIVGeomRoot()->addChild(ifs);
+//  body->getIVGeomRoot()->addChild(coords);
+//  body->getIVGeomRoot()->addChild(ifs);
   body->setMaterial(world->getMaterialIdx("stone"));
   body->addIVMat();
   return body;
@@ -126,8 +127,9 @@ GraspableBody *create_block(double inner_radius, double outer_radius, double thi
   SoIndexedFaceSet *ifs = new SoIndexedFaceSet;
   ifs->coordIndex.setValues(0, 5 * 6, c);
 
-  body->getIVGeomRoot()->addChild(coords);
-  body->getIVGeomRoot()->addChild(ifs);
+  //TODO: Kill me
+//  body->getIVGeomRoot()->addChild(coords);
+//  body->getIVGeomRoot()->addChild(ifs);
   body->setMaterial(world->getMaterialIdx("stone"));
   body->addIVMat();
 

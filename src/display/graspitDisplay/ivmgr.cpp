@@ -410,7 +410,8 @@ IVmgr::drawBodyWrench(GraspableBody *body, const double *wrench)
 {
   SoSeparator *fSep = NULL;
   SoSeparator *tSep = NULL;
-  body->getIVWorstCase()->removeAllChildren();
+  //TODO:
+//  body->getIVWorstCase()->removeAllChildren();
 
   SbVec3f forceDir(wrench[0], wrench[1], wrench[2]);
   if (forceDir.length() > 0.0) {

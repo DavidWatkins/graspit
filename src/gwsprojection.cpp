@@ -110,8 +110,9 @@ GWSprojection::GWSprojection(SoQtExaminerViewer *mainViewer, GWS *g, double *c,
   if (!hullTran) { printf("NULL hullTran!\n"); }
 
   if (object != NULL) {
-    hullTran->translation.connectFrom(&object->getIVTran()->translation);
-    hullTran->rotation.connectFrom(&object->getIVTran()->rotation);
+    //TODO: Migrate this to Transf???
+//    hullTran->translation.connectFrom(&object->getIVTran()->translation);
+//    hullTran->rotation.connectFrom(&object->getIVTran()->rotation);
   } else {
     hullTran->translation = toSbVec3f(gws->getGrasp()->getCoG());
   }

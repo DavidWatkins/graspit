@@ -30,7 +30,7 @@ set(PLY true CACHE PATH "compile PLY sources as well")
 set(DYNAMICS_ENGINE GRASPIT_DYNAMICS CACHE PATH "back end for GraspIt! Dynamics, current options are GRASPIT_DYNAMICS, BULLET_DYNAMICS")
 set(OPTIMIZATION_SOLVER NONE CACHE PATH "back end for GraspIt! optimization solver, current options are NONE, MOSEK, OASES, GUROBI")
 set(BUILD_TESTS false CACHE PATH "build tests as well")
-set(GRASPIT_DATA_DIR /home/$ENV{USER}/.graspit CACHE PATH "location to save graspit models, worlds and images")
+set(GRASPIT_DATA_DIR /opt/graspit CACHE PATH "location to save graspit models, worlds and images")
 
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)
@@ -865,10 +865,10 @@ target_link_libraries(graspit ${GRASPIT_LINK_LIBRARIES})
 target_link_libraries(graspit_simulator graspit ${GRASPIT_LINK_LIBRARIES})
 
 ## Set install destination paths
-set ( INCLUDE_DESTINATION ${CMAKE_INSTALL_PREFIX}/include/)
-set ( LIB_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
-set ( BIN_DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
-set ( SHARE_DESTINATION ${CMAKE_INSTALL_PREFIX}/share/)
+set ( INCLUDE_DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )
+set ( LIB_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/graspit/ )
+set ( BIN_DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/ )
+set ( SHARE_DESTINATION ${CMAKE_INSTALL_PREFIX}/share/ )
 
 set(INSTALL_BINS graspit_simulator graspit)
 
@@ -906,6 +906,27 @@ install(FILES
     ${UI_OUTFILES}
     DESTINATION ${INCLUDE_DESTINATION}/${PROJECT_NAME}/${GRASPIT_UI_INCLUDE_DIRNAME}
 )
+
+##############
+## Man Page ##
+##############
+
+ADD_CUSTOM_TARGET(man ALL)
+
+ADD_CUSTOM_COMMAND(
+  TARGET man
+  SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/graspit_simulator.pod
+  COMMAND pod2man ARGS -s 1 -c "graspit_simulator manual" ${CMAKE_CURRENT_SOURCE_DIR}/graspit_simulator.pod ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
+  OUTPUTS ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
+)
+
+ADD_CUSTOM_COMMAND(
+  TARGET man
+  SOURCE man
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
 
 #############
 ## Install ##

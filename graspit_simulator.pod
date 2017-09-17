@@ -1,0 +1,94 @@
+=head1 NAME
+
+graspit::graspit_simulator - A grasping simulator
+
+=head1 SYNOPSIS
+
+    usage: graspit_simulator [options] ... 
+
+=head1 DESCRIPTION
+
+It is a program to simulate grasps
+
+=head2 Environment Variables
+
+=over 12
+
+=item GRASPIT
+
+models, and worlds are loaded relative to this path,
+normally should be set to directory containing the 
+subfolders worlds and models
+
+=item GRASPIT_PLUGIN_DIR
+
+point to director containined plugin libs, if using ros plugins
+then normally should be set to my_ros_wkspace/devel/lib
+
+=back
+
+=head2 Options
+
+=over 12
+
+=item -h, --help
+
+Print this message
+
+=item -p, --plugin      
+
+Name of plugin to load, multiple plugins may be loaded
+seperated by comma.
+Ex: graspit -p plugin1,plugin2
+would load plugin1 and plugin2
+			
+=item -w, --world      
+
+World file to load from $GRASPIT/worlds.
+Ex: --world myworld
+would load $GRASPIT/worlds/myworld.xml
+			
+=item -o, --object      
+
+Name of object to load from $GRASPIT/models/objects/
+imported as a GraspableBody
+Ex: graspit -o mug
+would load $GRASPIT/models/objects/mug.xml
+			
+=item -b, --obstacle    
+
+Name of obstacle to load from $GRASPIT/models/obstacles/,
+imported as a Body.
+Ex: graspit -o table
+would load $GRASPIT/models/obstacles/table.xml
+			
+=item -r, --robot       
+
+Name of robot to load, from $GRASPIT/models/robots.
+The robot directory must have an xml file of the same name
+as the folder.  For example $GRASPIT/models/robots/Barrett 
+has a matching Barrett.xml file inside of it.
+Ex: graspit -r Barrett
+would load $GRASPIT/models/robots/Barrett/Barrett.xml
+			
+=item --headless    
+
+Run GraspIt! in headless mode if you do not want the user interface to display.  IVMgr will be NULL
+  
+=item -v, --version     
+
+print GraspIt! version
+
+=back
+
+=head1 LICENSE
+
+This is released under the GNU Public License.
+
+=head1 AUTHOR
+
+David Watkins - <davidwatkins@cs.columbia.edu>
+Jake Varley - <jvarley@gmail.com>
+
+=cut
+

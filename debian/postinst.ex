@@ -1,7 +1,4 @@
 #!/bin/sh
-# postinst script for nest
-#
-# see: dh_installdeb(1)
 
 set -e
 
@@ -19,8 +16,6 @@ case "$1" in
         exit 1
     ;;
 esac
-
-#DEBHELPER#
 
 exit 0
 

@@ -30,7 +30,7 @@ set(PLY true CACHE PATH "compile PLY sources as well")
 set(DYNAMICS_ENGINE GRASPIT_DYNAMICS CACHE PATH "back end for GraspIt! Dynamics, current options are GRASPIT_DYNAMICS, BULLET_DYNAMICS")
 set(OPTIMIZATION_SOLVER NONE CACHE PATH "back end for GraspIt! optimization solver, current options are NONE, MOSEK, OASES, GUROBI")
 set(BUILD_TESTS false CACHE PATH "build tests as well")
-set(GRASPIT_DATA_DIR /opt/graspit CACHE PATH "location to save graspit models, worlds and images")
+set(GRASPIT_DATA_DIR /etc/graspit CACHE PATH "location to save graspit models, worlds and images")
 
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)

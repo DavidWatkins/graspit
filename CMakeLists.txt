@@ -30,7 +30,7 @@ set(PLY true CACHE PATH "compile PLY sources as well")
 set(DYNAMICS_ENGINE GRASPIT_DYNAMICS CACHE PATH "back end for GraspIt! Dynamics, current options are GRASPIT_DYNAMICS, BULLET_DYNAMICS")
 set(OPTIMIZATION_SOLVER NONE CACHE PATH "back end for GraspIt! optimization solver, current options are NONE, MOSEK, OASES, GUROBI")
 set(BUILD_TESTS false CACHE PATH "build tests as well")
-set(GRASPIT_DATA_DIR /home/$ENV{USER}/.graspit CACHE PATH "location to save graspit models, worlds and images")
+set(GRASPIT_DATA_DIR /etc/graspit CACHE PATH "location to save graspit models, worlds and images")
 
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)
@@ -72,7 +72,10 @@ find_package(Qhull REQUIRED)
 find_package(SoQt4 REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
+find_package(TinyXML REQUIRED)
 find_package(Eigen3)
+
+message(TinyXML stuff ${TinyXML_INCLUDE_DIR} ${TinyXML_ROOT_DIR})
 
 if (DYNAMICS_ENGINE STREQUAL BULLET_DYNAMICS)
 
@@ -736,22 +739,6 @@ set (GRASPIT_IMAGES
     ${GSRC}/src/images/searchfind
 )
 
-
-#-------------------------------------- The TinyXML XML parser ---------------------------------------------------
-
-set (TINYXML_INCLUDES
-    ${GSRC}/tinyxml
-)
-set (TINYXML_HEADERS 
-    ${GSRC}/tinyxml/tinyxml.h 
-    ${GSRC}/tinyxml/tinystr.h
-)
-
-set (GRASPIT_CORE_SOURCES
-    ${GRASPIT_CORE_SOURCES}
-    ${GSRC}/tinyxml/tinyxmlparser.cpp
-)
-
 ##########################################
 ## Generate Qt files for the icon sets  ## 
 ##########################################
@@ -816,7 +803,7 @@ set (GRASPIT_INCLUDES
 ## Specify additional locations of header files
 include_directories(
     ${GRASPIT_INCLUDES}
-    ${TINYXML_INCLUDES}
+    ${TinyXML_INCLUDE_DIRS}
     EIGEN3_INCLUDE_DIR
 )
 
@@ -826,7 +813,7 @@ include_directories(
 ############
 
 add_definitions(${GRASPIT_DEFINES} ${SOQT_CXXFLAGS} ${LAPACK_LINKER_FLAGS} -g)
-link_directories(${SOQT_LINK_DIRS} ${QT_LIBRARY_DIR})
+link_directories(${SOQT_LINK_DIRS} ${QT_LIBRARY_DIR} )
 
 set (GRASPIT_LIBRARY_SOURCES
     ${GRASPIT_CORE_SOURCES}
@@ -861,6 +848,7 @@ set(GRASPIT_LINK_LIBRARIES
    ${QP_LIBRARIES}
    ${GUROBI_LIBRARIES}
    ${GUROBI_CPP_LIBRARIES}
+   ${TinyXML_LIBRARY}
 )
 
 ## Link the shared library and the executable
@@ -868,10 +856,10 @@ target_link_libraries(graspit ${GRASPIT_LINK_LIBRARIES})
 target_link_libraries(graspit_simulator graspit ${GRASPIT_LINK_LIBRARIES})
 
 ## Set install destination paths
-set ( INCLUDE_DESTINATION ${CMAKE_INSTALL_PREFIX}/include/)
-set ( LIB_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
-set ( BIN_DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
-set ( SHARE_DESTINATION ${CMAKE_INSTALL_PREFIX}/share/)
+set ( INCLUDE_DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ )
+set ( LIB_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/graspit/ )
+set ( BIN_DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/ )
+set ( SHARE_DESTINATION ${CMAKE_INSTALL_PREFIX}/share/ )
 
 set(INSTALL_BINS graspit_simulator graspit)
 
@@ -910,6 +898,27 @@ install(FILES
     DESTINATION ${INCLUDE_DESTINATION}/${PROJECT_NAME}/${GRASPIT_UI_INCLUDE_DIRNAME}
 )
 
+##############
+## Man Page ##
+##############
+
+ADD_CUSTOM_TARGET(man ALL)
+
+ADD_CUSTOM_COMMAND(
+  TARGET man
+  SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/graspit_simulator.pod
+  COMMAND pod2man ARGS -s 1 -c "graspit_simulator manual" ${CMAKE_CURRENT_SOURCE_DIR}/graspit_simulator.pod ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
+  OUTPUTS ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
+)
+
+ADD_CUSTOM_COMMAND(
+  TARGET man
+  SOURCE man
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1 DESTINATION ${SHARE_DESTINATION}/man/man1)
+
 #############
 ## Install ##
 #############
@@ -930,6 +939,7 @@ install(FILES
     CMakeMacros/FindBULLET.cmake
     CMakeMacros/FindSoQt4.cmake
     CMakeMacros/FindQhull.cmake
+    CMakeMacros/FindTinyXML.cmake
   DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 install(DIRECTORY

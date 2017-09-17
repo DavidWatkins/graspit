@@ -72,7 +72,10 @@ find_package(Qhull REQUIRED)
 find_package(SoQt4 REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
+find_package(TinyXML REQUIRED)
 find_package(Eigen3)
+
+message(TinyXML stuff ${TinyXML_INCLUDE_DIR} ${TinyXML_ROOT_DIR})
 
 if (DYNAMICS_ENGINE STREQUAL BULLET_DYNAMICS)
 
@@ -733,22 +736,6 @@ set (GRASPIT_IMAGES
     ${GSRC}/src/images/searchfind
 )
 
-
-#-------------------------------------- The TinyXML XML parser ---------------------------------------------------
-
-set (TINYXML_INCLUDES
-    ${GSRC}/tinyxml
-)
-set (TINYXML_HEADERS 
-    ${GSRC}/tinyxml/tinyxml.h 
-    ${GSRC}/tinyxml/tinystr.h
-)
-
-set (GRASPIT_CORE_SOURCES
-    ${GRASPIT_CORE_SOURCES}
-    ${GSRC}/tinyxml/tinyxmlparser.cpp
-)
-
 ##########################################
 ## Generate Qt files for the icon sets  ## 
 ##########################################
@@ -813,7 +800,7 @@ set (GRASPIT_INCLUDES
 ## Specify additional locations of header files
 include_directories(
     ${GRASPIT_INCLUDES}
-    ${TINYXML_INCLUDES}
+    ${TinyXML_INCLUDE_DIRS}
     EIGEN3_INCLUDE_DIR
 )
 
@@ -823,7 +810,7 @@ include_directories(
 ############
 
 add_definitions(${GRASPIT_DEFINES} ${SOQT_CXXFLAGS} ${LAPACK_LINKER_FLAGS} -g)
-link_directories(${SOQT_LINK_DIRS} ${QT_LIBRARY_DIR})
+link_directories(${SOQT_LINK_DIRS} ${QT_LIBRARY_DIR} )
 
 set (GRASPIT_LIBRARY_SOURCES
     ${GRASPIT_CORE_SOURCES}
@@ -858,6 +845,7 @@ set(GRASPIT_LINK_LIBRARIES
    ${QP_LIBRARIES}
    ${GUROBI_LIBRARIES}
    ${GUROBI_CPP_LIBRARIES}
+   ${TinyXML_LIBRARY}
 )
 
 ## Link the shared library and the executable
@@ -926,7 +914,7 @@ ADD_CUSTOM_COMMAND(
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1
 )
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/graspit_simulator.1 DESTINATION ${SHARE_DESTINATION}/man/man1)
 
 #############
 ## Install ##
@@ -948,6 +936,7 @@ install(FILES
     CMakeMacros/FindBULLET.cmake
     CMakeMacros/FindSoQt4.cmake
     CMakeMacros/FindQhull.cmake
+    CMakeMacros/FindTinyXML.cmake
   DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 install(DIRECTORY

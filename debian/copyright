@@ -21,3 +21,6 @@ License: GPL-2+
  this distribution and are subject to their own license specifications.  
  Please see qhull/*, ply/*, include/dlfc-win32.h, src/maxdet_src.cpp, 
  cmdline/*, and tinyxml/* for information on those packages.
+
+ The full text of the GPL is distributed as COPYING in moreutils's source,
+ and is distributed in /usr/share/common-licenses/GPL-2 on debian systems

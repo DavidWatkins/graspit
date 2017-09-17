@@ -2,7 +2,7 @@ Source: graspit
 Section: graphics
 Priority: optional
 Maintainer: David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>
-Build-Depends: debhelper (>=9), libqt4-dev, libblas-dev, liblapack-dev, libqhull-dev, libeigen3-dev, cmake, libtinyxml-dev
+Build-Depends: debhelper (>=9), libqt4-dev, libqt4-opengl-dev, libqt4-sql-psql, libcoin80-dev, libsoqt4-dev, libblas-dev, liblapack-dev, libqhull-dev, libeigen3-dev, libtinyxml-dev, cmake
 Standards-Version: 3.9.7
 Homepage: https://graspit-simulator.github.io
 Vcs-Git: https://github.com/graspit-simulator/graspit.git

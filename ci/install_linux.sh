@@ -9,6 +9,7 @@ libblas-dev
 liblapack-dev
 libqhull-dev 
 libeigen3-dev
+libtinyxml-dev
 '
 
 sudo apt-get -qq --yes --force-yes install $APT

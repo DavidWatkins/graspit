@@ -380,6 +380,7 @@ set (MOC_HEADERS
     ${GSRC}/include/graspit/graspitServer.h
     ${GSRC}/include/graspit/display/graspitDisplay/graspitDisplay.h
     ${GSRC}/include/graspit/display/graspitDisplay/ivmgr.h
+    ${GSRC}/include/graspit/display/graspitDisplay/displayBody.h
     ${GSRC}/include/graspit/EGPlanner/egPlanner.h
     ${GSRC}/include/graspit/EGPlanner/simAnn.h
     ${GSRC}/include/graspit/EGPlanner/loopPlanner.h
@@ -438,6 +439,7 @@ set (GRASPIT_CORE_SOURCES
     ${GSRC}/src/gwsprojection.cpp 
     ${GSRC}/src/display/graspitDisplay/ivmgr.cpp
     ${GSRC}/src/display/graspitDisplay/graspitDisplay.cpp
+    ${GSRC}/src/display/graspitDisplay/displayBody.cpp
     ${GSRC}/src/jacobian.cpp 
     ${GSRC}/src/joint.cpp 
     ${GSRC}/src/kinematicChain.cpp 
@@ -826,7 +828,7 @@ set (GRASPIT_LIBRARY_SOURCES
     ${GRASPIT_IMAGE_SOURCES}
     ${UI_OUTFILES}
     ${MOC_OUTFILES}
-)
+        src/display/displayInterface.cpp)
 
 add_library(graspit SHARED ${GRASPIT_LIBRARY_SOURCES})
 

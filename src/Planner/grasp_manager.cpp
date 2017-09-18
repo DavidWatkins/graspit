@@ -158,7 +158,7 @@ grasp_manager::loadPrimitives()
 
   if (!(myInput.openFile(path.latin1()))) {
     pr_error("could not open primitives file!");
-    primitives = my_body->getIVGeomRoot();
+//    primitives = my_body->getIVGeomRoot();
     printf("%s\n", prDir);
     printf("Setting primitive root node to original object.\n");
   }
@@ -168,7 +168,7 @@ grasp_manager::loadPrimitives()
     if (primitives == NULL) {
       printf("Load Primitive didnt work, although file seems to exist.\n");
       printf("Setting primitive root node to original object.\n");
-      primitives = my_body->getIVGeomRoot();
+//      primitives = my_body->getIVGeomRoot();
     }
     else {
       primitives->ref();
@@ -263,7 +263,7 @@ grasp_manager::readCandidateGraspsFile(const QString &filename)
   nrOfPlannedGrasps = graspList.size();
 
   //use original body as primitive since grasps were pregenerated
-  primitives = my_body->getIVGeomRoot();
+//  primitives = my_body->getIVGeomRoot();
 
   myTester->setupGraspVisWindow(my_body, primitives);
   myTester->visualizePlannedGrasps(graspList);

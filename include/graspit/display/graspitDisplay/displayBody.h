@@ -53,6 +53,8 @@ class DisplayBody {
     //! Body whose geometry we are displaying
     Body *mBody;
 
+    SoSeparator *IVRoot;
+
     //! A pointer to the root node of the geometry of this model
     SoSeparator *IVGeomRoot;
 

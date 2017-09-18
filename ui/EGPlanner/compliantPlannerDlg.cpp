@@ -172,7 +172,7 @@ CompliantPlannerDlg::generateButtonClicked()
   //get object bbox dimensions
   SoGetBoundingBoxAction *bba =
     new SoGetBoundingBoxAction(graspitCore->getIVmgr()->getViewer()->getViewportRegion());
-  bba->apply(mObject->getIVGeomRoot());
+//  bba->apply(mObject->getIVGeomRoot());
   SbVec3f bbmin, bbmax;
   bba->getBoundingBox().getBounds(bbmin, bbmax);
   delete bba;
@@ -183,9 +183,9 @@ CompliantPlannerDlg::generateButtonClicked()
   boxSampling(a, b, c, resolution);
 
   mPlanner->resetPlanner();
-  if (visualMarkersBox->isChecked()) {
-    visualMarkersBoxClicked();
-  }
+//  if (visualMarkersBox->isChecked()) {
+//    visualMarkersBoxClicked();
+//  }
   update();
 }
 

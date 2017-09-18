@@ -135,7 +135,7 @@ class Body : public WorldElement {
     Body(const Body &b);
 
     //! Creates the axes for display
-    void createAxesGeometry();
+//    void createAxesGeometry();
 
     //! Adds itself to the given vector of Bodies
     virtual void getBodyList(std::vector<Body *> *bodies) {bodies->push_back(this);}
@@ -175,8 +175,8 @@ class Body : public WorldElement {
     //! Make this body a clone of another body
     virtual void cloneFrom(const Body *original);
 
-    //! Adds additional material nodes so we can control the transparency of the body
-    void addIVMat(bool clone = false);
+//    //! Adds additional material nodes so we can control the transparency of the body
+//    void addIVMat(bool clone = false);
 
     //! Adds this body to the collision detection system
     virtual void addToIvc(bool ExpectEmpty = false);
@@ -199,8 +199,8 @@ class Body : public WorldElement {
     //! Default parameters for transparency, show friction cones, etc.
     virtual void setDefaultViewingParameters();
 
-    //! Enables / disabled automatic render requests when this body is moved
-    void setRenderGeometry(bool s);
+//    //! Enables / disabled automatic render requests when this body is moved
+//    void setRenderGeometry(bool s);
 
     //! Gets the current rendering requests state
     bool getRenderGeometry() const {return mRenderGeometry;}
@@ -265,8 +265,8 @@ class Body : public WorldElement {
 
     //! Shows or hides the friction cones for this body
     void showFrictionCones(bool on, int vc = 0);
-    //! Asks all contacts to recompute their friction cones
-    virtual void redrawFrictionCones();
+//    //! Asks all contacts to recompute their friction cones
+//    virtual void redrawFrictionCones();
 
     //! Adds a contact to this body
     virtual void addContact(Contact *c);

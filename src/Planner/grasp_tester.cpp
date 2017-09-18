@@ -789,7 +789,7 @@ grasp_tester::setupGraspVisWindow(GraspableBody *myBody, SoGroup *prim)
   lightSep->addChild(lightDir);
   lightSep->addChild(myViewer->getHeadlight());
 
-  objSep->addChild(myBody->getIVTran());
+//  objSep->addChild(myBody->getIVTran());
   objSep->addChild(prim);
 
   VisTop->addChild(myViewer->getCamera());

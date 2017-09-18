@@ -208,8 +208,7 @@ GraspitCollision::addBody(Body *body,  bool)
   CollisionModel *model = new CollisionModel(getThreadId());
 
   // get the triangles of the object
-  std::vector<Triangle> triangles;
-  body->getGeometryTriangles(&triangles);
+  const std::vector<Triangle> &triangles = body->getGeometryTriangles();
 
   //add all the triangles
   for (int i = 0; i < (int)triangles.size(); i++) {
@@ -242,8 +241,7 @@ bool GraspitCollision::updateBodyGeometry(Body *body, bool)
   model->reset();
 
   // get the triangles of the object
-  std::vector<Triangle> triangles;
-  body->getGeometryTriangles(&triangles);
+  const std::vector<Triangle> &triangles = body->getGeometryTriangles();
 
   //add all the triangles
   for (int i = 0; i < (int)triangles.size(); i++) {

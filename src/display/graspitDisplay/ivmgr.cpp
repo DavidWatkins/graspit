@@ -459,7 +459,7 @@ IVmgr::drawBodyWrench(GraspableBody *body, const double *wrench)
     if (tSep) { pointerRoot->addChild(tSep); }
 
     // Remove previous worstcase pointers from the object and add new ones
-    body->getIVWorstCase()->addChild(pointerRoot);
+//    body->getIVWorstCase()->addChild(pointerRoot);
   }
 }
 
@@ -493,10 +493,10 @@ IVmgr::drawDynamicForces()
     for (int b = 0; b < world->getNumGB(); b++) {
       int sz = world->getGB(b)->getContacts().size();
       numContacts += sz;
-      int numChildren = world->getGB(b)->getIVContactIndicators()->getNumChildren();
-      for (int i = numChildren - 1; i >= sz; i--) {
-        world->getGB(b)->getIVContactIndicators()->removeChild(i);
-      }
+//      int numChildren = world->getGB(b)->getIVContactIndicators()->getNumChildren();
+//      for (int i = numChildren - 1; i >= sz; i--) {
+//        world->getGB(b)->getIVContactIndicators()->removeChild(i);
+//      }
     }
     contactForceBlinkerVec.clear();
     if (numContacts == 0) { return; }
@@ -531,17 +531,17 @@ IVmgr::drawDynamicForces()
       ptr->addChild(dynForceMat);
       ptr->addChild(arrow);
 
-      int lastChild = world->getGB(b)->getIVContactIndicators()->getNumChildren();
-      if (world->dynamicsAreOn()) {
-        world->getGB(b)->getIVContactIndicators()->insertChild(ptr, lastChild);
-      } else {
-        contactForceBlinkerVec.push_back(new SoBlinker);
-        contactForceBlinkerVec.back()->addChild(ptr);
-        contactForceBlinkerVec.back()->on = false;
-        contactForceBlinkerVec.back()->whichChild = 0;
-        world->getGB(b)->getIVContactIndicators()->insertChild(
-          contactForceBlinkerVec.back(), lastChild);
-      }
+//      int lastChild = world->getGB(b)->getIVContactIndicators()->getNumChildren();
+//      if (world->dynamicsAreOn()) {
+//        world->getGB(b)->getIVContactIndicators()->insertChild(ptr, lastChild);
+//      } else {
+//        contactForceBlinkerVec.push_back(new SoBlinker);
+//        contactForceBlinkerVec.back()->addChild(ptr);
+//        contactForceBlinkerVec.back()->on = false;
+//        contactForceBlinkerVec.back()->whichChild = 0;
+//        world->getGB(b)->getIVContactIndicators()->insertChild(
+//          contactForceBlinkerVec.back(), lastChild);
+//      }
     }
   }
 }
@@ -918,7 +918,7 @@ IVmgr::makeCenterball(WorldElement *selectedElement, Body *surroundMe)
 
   // Compute the bounding box of the surroundMe body
   SoGetBoundingBoxAction *bba = new SoGetBoundingBoxAction(myViewer->getViewportRegion());
-  bba->apply(surroundMe->getIVGeomRoot());
+//  bba->apply(surroundMe->getIVGeomRoot());
   float maxRad = (bba->getBoundingBox().getMax() - bba->getBoundingBox().getMin()).length();
   delete bba;
 
@@ -999,7 +999,7 @@ IVmgr::makeHandleBox(WorldElement *selectedElement, Body *surroundMe)
 
   // compute the bounding box of the body
   SoGetBoundingBoxAction *bba = new SoGetBoundingBoxAction(myViewer->getViewportRegion());
-  bba->apply(surroundMe->getIVGeomRoot());
+//  bba->apply(surroundMe->getIVGeomRoot());
   SbVec3f bbmin, bbmax;
   bba->getBoundingBox().getBounds(bbmin, bbmax);
   delete bba;
@@ -1077,7 +1077,7 @@ IVmgr::makeJointDraggers(Robot *robot, KinematicChain *chain)
   bool firstDragger = true;
 
   //jointDraggerSep->ref();
-  jointDraggerSep->addChild(robot->getBase()->getIVTran());
+//  jointDraggerSep->addChild(robot->getBase()->getIVTran());
   DBGP("make draggers; value: " << chain->getIVTran()->translation.getValue()[0]);
   jointDraggerSep->addChild(chain->getIVTran());
 

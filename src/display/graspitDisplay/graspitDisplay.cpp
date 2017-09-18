@@ -101,3 +101,7 @@ transf GraspitDisplay::getCameraTransf()
     std::cout << "GraspitDisplay::getCameraTransf not Implemented Yet!" << std::endl;
     return transf::IDENTITY;
 }
+
+void GraspitDisplay::update() {
+
+}

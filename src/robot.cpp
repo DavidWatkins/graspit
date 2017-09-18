@@ -1124,20 +1124,20 @@ remove a robot from the scene graph.
 void
 Robot::setRenderGeometry(bool s)
 {
-  mRenderGeometry = s;
-  if (parent) { parent->setRenderGeometry(s); }
-  for (int c = 0; c < numChains; c++) {
-    for (int j = 0; j < chainVec[c]->getNumAttachedRobots(); j++) {
-      chainVec[c]->getAttachedRobot(j)->setRenderGeometry(s);
-    }
-  }
-  for (int f = 0; f < getNumChains(); f++) {
-    for (int l = 0; l < getChain(f)->getNumLinks(); l++) {
-      getChain(f)->getLink(l)->setRenderGeometry(s);
-    }
-  }
-  base->setRenderGeometry(s);
-  if (mountPiece) { mountPiece->setRenderGeometry(s); }
+//  mRenderGeometry = s;
+//  if (parent) { parent->setRenderGeometry(s); }
+//  for (int c = 0; c < numChains; c++) {
+//    for (int j = 0; j < chainVec[c]->getNumAttachedRobots(); j++) {
+//      chainVec[c]->getAttachedRobot(j)->setRenderGeometry(s);
+//    }
+//  }
+//  for (int f = 0; f < getNumChains(); f++) {
+//    for (int l = 0; l < getChain(f)->getNumLinks(); l++) {
+//      getChain(f)->getLink(l)->setRenderGeometry(s);
+//    }
+//  }
+//  base->setRenderGeometry(s);
+//  if (mountPiece) { mountPiece->setRenderGeometry(s); }
 }
 
 /*! This attempt to set the pose of the robot base to tr.  It does not check

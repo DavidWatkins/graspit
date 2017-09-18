@@ -142,7 +142,7 @@ Body::Body(const Body &b) : WorldElement(b)
   IVRoot = b.IVRoot;
   mGeometryFilename = b.mGeometryFilename;
 
-  createAxesGeometry();
+//  createAxesGeometry();
 }
 
 /*! Breaks all contacts; it is up to the world to also remove it from
@@ -181,9 +181,9 @@ Body::cloneFrom(const Body *original)
     addVirtualContact(newContact);
   }
 
-  setRenderGeometry(original->getRenderGeometry());
+//  setRenderGeometry(original->getRenderGeometry());
 
-  addIVMat(true);
+//  addIVMat(true);
 
   //add a CLONE to collision detection
   cloneToIvc(original);
@@ -376,7 +376,7 @@ Body::load(const QString &filename)
     return FAILURE;
   }
   //add material for controlling transparency
-  addIVMat();
+//  addIVMat();
   return SUCCESS;
 }
 

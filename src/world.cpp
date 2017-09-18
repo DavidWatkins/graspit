@@ -140,7 +140,7 @@ World::World(QObject *parent, const char *name) :
   mCollisionInterface = new GraspitCollision();
 #endif
 
-  mDisplayInterface = new GraspitDisplay();
+  mDisplayInterface = new GraspitDisplay(this);
 
   IVRoot = new SoSeparator;
   IVRoot->ref();
@@ -954,7 +954,7 @@ World::importBodyFromXml(QString bodyType, const TiXmlElement *child, QString ro
   Body *newBody = (Body *) getWorldElementFactory().createElement(bodyType.toStdString(), this, NULL);
   if (!newBody) { return NULL; }
   if (newBody->loadFromXml(child, rootPath) == FAILURE) { return NULL; }
-  newBody->addIVMat();
+//  newBody->addIVMat();
   newBody->addToIvc();
   addBody(newBody);
   return newBody;

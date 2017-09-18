@@ -82,14 +82,14 @@ int GraspitDBModel::load(World *w)
   //database as well. We need to scale the geometry appropriately
   SoScale *scale = new SoScale();
   scale->scaleFactor.setValue(RescaleFactor(), RescaleFactor(), RescaleFactor());
-  mGraspableBody->getIVGeomRoot()->addChild(scale);
+//  mGraspableBody->getIVGeomRoot()->addChild(scale);
 
   if (loadGeometry() != SUCCESS) {
     mGeometryLoaded = false;
     return FAILURE;
   }
   mGeometryLoaded = true;
-  mGraspableBody->addIVMat();
+//  mGraspableBody->addIVMat();
 
   //set the dynamic properties. This needs a better solution...
   mGraspableBody->setDefaultDynamicParameters();

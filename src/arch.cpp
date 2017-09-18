@@ -78,7 +78,7 @@ Body *createSupport(double size, double thickness, World *world)
 //  body->getIVGeomRoot()->addChild(coords);
 //  body->getIVGeomRoot()->addChild(ifs);
   body->setMaterial(world->getMaterialIdx("stone"));
-  body->addIVMat();
+//  body->addIVMat();
   return body;
 }
 
@@ -131,7 +131,7 @@ GraspableBody *create_block(double inner_radius, double outer_radius, double thi
 //  body->getIVGeomRoot()->addChild(coords);
 //  body->getIVGeomRoot()->addChild(ifs);
   body->setMaterial(world->getMaterialIdx("stone"));
-  body->addIVMat();
+//  body->addIVMat();
 
   double density = 2 * 1.0e-3; //from john ochsendorf: 2000 kg / m3 converted to g / mm3
   double volume = thickness * 0.5 * block_span * (outer_radius * outer_radius - inner_radius * inner_radius);

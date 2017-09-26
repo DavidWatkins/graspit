@@ -1,0 +1,47 @@
+graspit (3:3.0+git.105-5) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 0388e4a
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 17:43:16 -0400
+
+graspit (3:3.0+git.105-4) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 0388e4a
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 17:41:30 -0400
+
+graspit (3:3.0+git.105-3) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 0388e4a
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 17:39:29 -0400
+
+graspit (3:3.0+git.105-2) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 0388e4a
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 17:34:05 -0400
+
+graspit (3:3.0+git.105-1) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 0388e4a
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 17:32:10 -0400
+
+graspit (3:3.0+git.102-1) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 2e0c36b
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 16:51:49 -0400
+
+graspit (3:3.0+git.100-1) xenial; urgency=medium
+
+  * New automated build from: 3.0 - 8fd768b
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Tue, 26 Sep 2017 16:49:26 -0400
+
+graspit (4.0-0ubuntu1) xenial; urgency=medium
+
+  * Initial release (Closes: #2000)
+
+ -- David Watkins (Ph.D Researcher at Columbia University) <davidwatkins@cs.columbia.edu>  Sun, 17 Sep 2017 03:52:46 -0400
